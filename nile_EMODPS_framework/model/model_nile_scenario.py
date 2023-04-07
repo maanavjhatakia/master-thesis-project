@@ -5,12 +5,13 @@ import numpy as np
 import pandas as pd
 
 # Importing classes to generate the model
-from .model_classes import Reservoir, Catchment, IrrigationDistrict, HydropowerPlant
-from .smash import Policy
+from model_classes import Reservoir, Catchment, IrrigationDistrict, HydropowerPlant
+from smash import Policy
 import sys
+import os
 
 sys.path.append("..")
-from experimentation.data_generation import generate_input_data
+from data_generation import generate_input_data
 
 
 class ModelNileScenario:
@@ -33,7 +34,9 @@ class ModelNileScenario:
         as well as policy function hyper-parameters.
         """
 
-        self.read_settings_file("../settings/settings_file_Nile.xlsx")
+        current_dir = os.getcwd()
+        file_path = os.path.join(current_dir,'settings_file_Nile.xlsx')
+        self.read_settings_file(file_path)
 
         # Generating catchment and irrigation district objects
         self.catchments = dict()
@@ -143,7 +146,7 @@ class ModelNileScenario:
 
         egypt_agg_def = np.sum(bcm_def_egypt) / 20
         egypt_90_perc_worst = np.percentile(
-            bcm_def_egypt, 90, interpolation="closest_observation"
+            bcm_def_egypt, 90, interpolation="nearest"
         )
         egypt_freq_low_HAD = np.sum(self.reservoirs["HAD"].level_vector < 159) / len(
             self.reservoirs["HAD"].level_vector
@@ -161,7 +164,7 @@ class ModelNileScenario:
         ]
         sudan_agg_def = np.sum(bcm_def_sudan) / 20
         sudan_90_perc_worst = np.percentile(
-            bcm_def_sudan, 90, interpolation="closest_observation"
+            bcm_def_sudan, 90, interpolation="nearest"
         )
 
         ethiopia_agg_hydro = (

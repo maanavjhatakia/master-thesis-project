@@ -3,15 +3,16 @@
 # Importing libraries for functionality
 import numpy as np
 import pandas as pd
+import sys
+import os
+
+module_path = os.path.abspath(os.path.join(".."))
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
 # Importing classes to generate the model
-from .model_classes import Reservoir, Catchment, IrrigationDistrict, HydropowerPlant
-from .smash import Policy
-
-
-# import sys
-# sys.path.append("..")
-# from experimentation.data_generation import generate_input_data
+from model_classes import Reservoir, Catchment, IrrigationDistrict, HydropowerPlant
+from smash import Policy
 
 
 class ModelNile:
@@ -34,7 +35,11 @@ class ModelNile:
         as well as policy function hyper-parameters.
         """
 
-        self.read_settings_file("../settings/settings_file_Nile.xlsx")
+        current_dir = os.getcwd()
+        file_path = os.path.join(current_dir,'settings_file_Nile.xlsx')
+        self.read_settings_file(file_path)
+        print(file_path)
+        
 
         # Generating catchment and irrigation district objects
         self.catchments = dict()
@@ -146,11 +151,14 @@ class ModelNile:
 
         egypt_agg_def = np.sum(bcm_def_egypt) / 20
         egypt_90_perc_worst = np.percentile(
-            bcm_def_egypt, 90, interpolation="closest_observation"
+            bcm_def_egypt, 90, interpolation="nearest"
         )
         egypt_freq_low_HAD = np.sum(self.reservoirs["HAD"].level_vector < 159) / len(
             self.reservoirs["HAD"].level_vector
         )
+        
+        #added to get HAD level for economic conversion
+        #egypt_HAD_level = self.reservoirs['HAD'].level_vector
 
         sudan_irr_districts = [
             value for key, value in self.irr_districts.items() if key not in {"Egypt"}
@@ -164,7 +172,7 @@ class ModelNile:
         ]
         sudan_agg_def = np.sum(bcm_def_sudan) / 20
         sudan_90_perc_worst = np.percentile(
-            bcm_def_sudan, 90, interpolation="closest_observation"
+            bcm_def_sudan, 90, interpolation="nearest"
         )
 
         ethiopia_agg_hydro = (
@@ -177,7 +185,7 @@ class ModelNile:
             egypt_freq_low_HAD,
             sudan_agg_def,
             sudan_90_perc_worst,
-            ethiopia_agg_hydro,
+            ethiopia_agg_hydro
         )
 
     def simulate(self):
